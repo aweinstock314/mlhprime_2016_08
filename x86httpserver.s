@@ -1,26 +1,22 @@
 _start:
 
-call hardcodedHeader
-mov $1, %ebx
-mov $4, %eax
-int $0x80 # write
+mov $1, %r11
+call serveToR11
 
-call hardcodedFilename
-xor %rcx, %rcx
-mov $5, %eax
-int $0x80 # open
-mov %rax, %rdi # store the fd
+call makeBoundSocketToR12
 
-mov $1, %ebx
-mov %rdi, %rcx
+serverLoop:
+mov %r12, %rdi
+xor %rsi, %rsi
 xor %rdx, %rdx
-mov $0xffff, %esi
-mov $187, %eax
-int $0x80 # sendfile
-
-mov $6, %eax
-mov %rdi, %rbx
-int $0x80 # close
+mov $43, %rax
+syscall # accept(fd, 0, 0)
+mov %rax, %r11
+call serveToR11
+mov $3, %rax
+mov %r11, %rdi
+syscall # close(newfd)
+jmp serverLoop
 
 jmp exit
 
@@ -37,6 +33,58 @@ call headerPostCall
 headerPostCall:
 pop %rcx
 mov $41, %rdx
+ret
+
+makeBoundSocketToR12:
+# uses %r12 to store the bound socket, since it's a free register (not used by syscalls)
+mov $41, %rax
+mov $0x0,%edx
+mov $0x1,%esi
+mov $0x2,%edi
+syscall # socket(AF_INET, SOCK_STREAM, 0)
+mov %rax, %r12
+
+call hardcodedAddr
+mov %r12, %rdi
+mov $49, %rax
+syscall # bind(fd, HARDCODED_ADDR, sizeof(HARDCODED_ADDR))
+
+mov $5, %rsi
+mov $50, %rax
+syscall # listen(fd, 5)
+ret
+
+hardcodedAddr:
+call addrPostCall
+# idk why it wants 16 bytes, but bind returns EINVAL for 8 bytes, so pad with zeros
+.string "\x02\x00\x23\x29\x00\x00\x00\x00\0\0\0\0\0\0\0\0"
+addrPostCall:
+pop %rsi
+mov $16, %rdx
+ret
+
+serveToR11:
+call hardcodedHeader
+mov %r11, %rbx
+mov $4, %eax
+int $0x80 # write
+
+call hardcodedFilename
+xor %rcx, %rcx
+mov $5, %eax
+int $0x80 # open
+mov %rax, %rdi # store the fd
+
+mov %r11, %rbx
+mov %rdi, %rcx
+xor %rdx, %rdx
+mov $0xffff, %esi
+mov $187, %eax
+int $0x80 # sendfile
+
+mov $6, %eax
+mov %rdi, %rbx
+int $0x80 # close rdi
 ret
 
 
