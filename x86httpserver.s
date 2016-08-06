@@ -1,7 +1,7 @@
 _start:
 
-mov $1, %r11
-call serveToR11
+mov $1, %r13
+call serveToR13
 
 call makeBoundSocketToR12
 
@@ -11,10 +11,10 @@ xor %rsi, %rsi
 xor %rdx, %rdx
 mov $43, %rax
 syscall # accept(fd, 0, 0)
-mov %rax, %r11
-call serveToR11
+mov %rax, %r13
+call serveToR13
 mov $3, %rax
-mov %r11, %rdi
+mov %r13, %rdi
 syscall # close(newfd)
 jmp serverLoop
 
@@ -63,9 +63,9 @@ pop %rsi
 mov $16, %rdx
 ret
 
-serveToR11:
+serveToR13:
 call hardcodedHeader
-mov %r11, %rbx
+mov %r13, %rbx
 mov $4, %eax
 int $0x80 # write
 
@@ -75,7 +75,7 @@ mov $5, %eax
 int $0x80 # open
 mov %rax, %rdi # store the fd
 
-mov %r11, %rbx
+mov %r13, %rbx
 mov %rdi, %rcx
 xor %rdx, %rdx
 mov $0xffff, %esi
