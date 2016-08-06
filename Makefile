@@ -1,6 +1,6 @@
 .PHONY: all
 
-all: x86httpserver helloworld
+all: x86httpserver helloworld bindsend
 
 x86httpserver.o: x86httpserver.s
 	as x86httpserver.s -o x86httpserver.o
@@ -11,3 +11,6 @@ helloworld.o: helloworld.s
 	as helloworld.s -o helloworld.o
 helloworld: helloworld.o
 	ld helloworld.o -o helloworld
+
+bindsend: bindsend.c
+	gcc bindsend.c -o bindsend
