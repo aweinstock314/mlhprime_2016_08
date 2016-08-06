@@ -1,5 +1,6 @@
 _start:
-call helloStr
+
+call hardcodedHeader
 mov $1, %ebx
 mov $4, %eax
 int $0x80 # write
@@ -9,6 +10,7 @@ xor %rcx, %rcx
 mov $5, %eax
 int $0x80 # open
 mov %rax, %rdi # store the fd
+
 mov $1, %ebx
 mov %rdi, %rcx
 xor %rdx, %rdx
@@ -22,20 +24,21 @@ int $0x80 # close
 
 jmp exit
 
-helloStr:
-call helloStr2
-.string "Hello, world!\n"
-helloStr2:
-pop %rcx
-mov $14, %rdx
-ret
-
 hardcodedFilename:
 call hfDataPostCall
 .string "./web/index.html"
 hfDataPostCall:
 pop %rbx
 ret
+
+hardcodedHeader:
+call headerPostCall
+.string "HTTP/1.0 200 OK\nContent-type: text/html\n\n"
+headerPostCall:
+pop %rcx
+mov $41, %rdx
+ret
+
 
 exit:
 mov $1, %eax
