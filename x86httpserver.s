@@ -2,20 +2,40 @@ _start:
 call helloStr
 mov $1, %ebx
 mov $4, %eax
-int $0x80
+int $0x80 # write
+
+call hardcodedFilename
+xor %rcx, %rcx
+mov $5, %eax
+int $0x80 # open
+mov %rax, %rdi # store the fd
+mov $1, %ebx
+mov %rdi, %rcx
+xor %rdx, %rdx
+mov $0xffff, %esi
+mov $187, %eax
+int $0x80 # sendfile
+
+mov $6, %eax
+mov %rdi, %rbx
+int $0x80 # close
 
 jmp exit
 
 helloStr:
-# add $8, %eax
-jmp helloStrData
+call helloStr2
+.string "Hello, world!\n"
 helloStr2:
 pop %rcx
 mov $14, %rdx
 ret
-helloStrData:
-call helloStr2
-.string "Hello, world!\n"
+
+hardcodedFilename:
+call hfDataPostCall
+.string "./web/index.html"
+hfDataPostCall:
+pop %rbx
+ret
 
 exit:
 mov $1, %eax
